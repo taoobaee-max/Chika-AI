@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chika AI - Nhập Vai AI Không Giới Hạn</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #070d19;
+      --bg-card: #0f1c32;
+      --bg-hover: #192d4f;
+      --accent-green: #10b981;
+      --accent-neon: #00ffcc;
+      --accent-gradient: linear-gradient(135deg, #10b981, #00d2ff);
+      --text-main: #f3f4f6;
+      --text-sub: #9ca3af;
+      --border-color: #1e2f4d;
+      --sidebar-width: 280px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Sidebar Navigation */
+    .sidebar {
+      width: var(--sidebar-width);
+      background-color: #040810;
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      padding: 15px;
+      gap: 12px;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 900;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .nav-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      padding: 12px 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .nav-btn:hover, .nav-btn.active {
+      background: var(--bg-card);
+      color: var(--accent-neon);
+      border-left: 3px solid var(--accent-green);
+    }
+
+    .nav-btn i { font-size: 18px; width: 22px; }
+
+    /* Wallet Box */
+    .wallet-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: auto;
+    }
+
+    .gem-count {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--accent-neon);
+      margin-bottom: 8px;
+    }
+
+    .reward-btn {
+      width: 100%;
+      padding: 9px;
+      border: none;
+      border-radius: 8px;
+      background: var(--accent-gradient);
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 6px;
+      font-size: 13px;
+      transition: opacity 0.2s;
+    }
+
+    .reward-btn:hover { opacity: 0.9; }
+    .reward-btn:disabled { background: #374151; color: #9ca3af; cursor: not-allowed; }
+
+    /* Main Area */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Top Bar Header */
+    .header {
+      height: 60px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: rgba(7, 13, 25, 0.85);
+      backdrop-filter: blur(10px);
+    }
+
+    .header-status {
+      font-size: 12px;
+      color: var(--accent-neon);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Search Popover / Float Search */
+    .search-btn-trigger {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--accent-neon);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 18px;
+      transition: all 0.2s;
+    }
+
+    .search-btn-trigger:hover {
+      background: var(--accent-green);
+      color: #000;
+      box-shadow: 0 0 10px var(--accent-green);
+    }
+
+    .search-overlay {
+      position: absolute;
+      top: 60px;
+      right: 20px;
+      width: 320px;
+      background: var(--bg-card);
+      border: 1px solid var(--accent-green);
+      border-radius: 12px;
+      padding: 10px;
+      display: none;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      z-index: 100;
+    }
+
+    .search-overlay.active { display: flex; gap: 8px; }
+
+    .search-input {
+      flex: 1;
+      background: var(--bg-dark);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: var(--text-main);
+      outline: none;
+    }
+
+    /* Views */
+    .view-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: none;
+    }
+
+    .view-container.active { display: block; }
+
+    /* Character Cards & Grids */
+    .category-title {
+      font-size: 18px;
+      margin: 15px 0 10px 0;
+      color: var(--accent-neon);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .char-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .char-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s;
+      position: relative;
+    }
+
+    .char-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent-green);
+    }
+
+    .char-img {
+      width: 100%;
+      height: 190px;
+      object-fit: cover;
+    }
+
+    .char-info { padding: 10px; }
+
+    .char-name {
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .char-desc {
+      font-size: 11px;
+      color: var(--text-sub);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .char-badge {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: rgba(0,0,0,0.75);
+      padding: 2px 6px;
+      border-radius: 8px;
+      font-size: 9px;
+      color: var(--accent-neon);
+      border: 1px solid var(--accent-green);
+    }
+
+    /* User Profile Styling */
+    .profile-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 20px;
+      max-width: 600px;
+      margin: 0 auto 20px auto;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .profile-avatar-box {
+      position: relative;
+    }
+
+    .profile-avatar {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--accent-neon);
+    }
+
+    .profile-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .stat-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+    }
+
+    .stat-num {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--accent-neon);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+
+    /* Forms */
+    .form-group { margin-bottom: 15px; }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: var(--accent-neon);
+      font-size: 13px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-main);
+      outline: none;
+    }
+
+    /* Chat View */
+    .chat-view {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .chat-view.active { display: flex; }
+
+    .chat-header {
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg-card);
+    }
+
+    .chat-header img {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .chat-body {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .msg {
+      max-width: 85%;
+      padding: 14px;
+      border-radius: 12px;
+      line-height: 1.6;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
+
+    .msg.user {
+      align-self: flex-end;
+      background: var(--accent-green);
+      color: #000;
+      font-weight: 500;
+      border-bottom-right-radius: 2px;
+    }
+
+    .msg.bot {
+      align-self: flex-start;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      border-bottom-left-radius: 2px;
+    }
+
+    .chat-input-area {
+      padding: 12px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      gap: 10px;
+      background: #040810;
+    }
+
+    .chat-input {
+      flex: 1;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 25px;
+      padding: 10px 18px;
+      color: var(--text-main);
+      outline: none;
+    }
+
+    .send-btn {
+      background: var(--accent-gradient);
+      border: none;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      color: #000;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Download APK Card */
+    .apk-card {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(0, 212, 255, 0.15));
+      border: 1px solid var(--accent-green);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      max-width: 500px;
+      margin: 20px auto;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="logo">
+      <i class="fa-solid fa-sparkles"></i>
+      <span>Chika AI</span>
+    </div>
+
+    <button class="nav-btn active" onclick="switchTab('explore')">
+      <i class="fa-solid fa-compass"></i> Khám Phá
+    </button>
+    <button class="nav-btn" onclick="switchTab('profile')">
+      <i class="fa-solid fa-id-card"></i> Hồ Sơ Của Tôi
+    </button>
+    <button class="nav-btn" onclick="switchTab('create')">
+      <i class="fa-solid fa-plus-circle"></i> Tạo Nhân Vật
+    </button>
+
+    <!-- Nút Tải APK -->
+    <button class="nav-btn" style="color: var(--accent-neon);" onclick="switchTab('apk')">
+      <i class="fa-brands fa-android"></i> Tải APK Chika AI
+    </button>
+
+    <!-- VÍ GEM -->
+    <div class="wallet-box">
+      <div class="gem-count">
+        <span><i class="fa-solid fa-gem"></i> Gems:</span>
+        <span id="gemCount">120</span>
+      </div>
+      <button class="reward-btn" id="dailyBtn" onclick="claimDaily()">
+        <i class="fa-solid fa-gift"></i> Điểm Danh Hằng Ngày (+50)
+      </button>
+      <button class="reward-btn" style="background: linear-gradient(135deg, #a855f7, #ec4899); color: white;" onclick="watchAd()">
+        <i class="fa-solid fa-circle-play"></i> Xem QC Nhận Gem (+20)
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <!-- TOP HEADER -->
+    <div class="header">
+      <div class="header-status">
+        <i class="fa-solid fa-shield-halved"></i> Chika Unfiltered Active (Không Bộ Lọc Từ Ngữ)
+      </div>
+
+      <!-- KÍNH LÚP TÌM KIẾM CỐ ĐỊNH -->
+      <div style="position: relative;">
+        <button class="search-btn-trigger" onclick="toggleSearchBox()" title="Tìm kiếm nhân vật">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+
+        <div class="search-overlay" id="searchBox">
+          <input type="text" class="search-input" id="searchInput" placeholder="Nhập tên char, thể loại..." onkeyup="filterChars(this.value)">
+          <button class="send-btn" style="width:34px; height:34px;" onclick="toggleSearchBox()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 1: KHÁM PHÁ -->
+    <div id="explore-view" class="view-container active">
+      <div class="category-title"><i class="fa-solid fa-fire"></i> Hot / Anime Wifu</div>
+      <div class="char-grid" id="grid-anime"></div>
+
+      <div class="category-title"><i class="fa-solid fa-masks-theater"></i> Nhập Vai & Drama</div>
+      <div class="char-grid" id="grid-roleplay"></div>
+
+      <div class="category-title"><i class="fa-solid fa-hat-wizard"></i> Fantasy & Kỳ Ảo</div>
+      <div class="char-grid" id="grid-fantasy"></div>
+
+      <div class="category-title"><i class="fa-solid fa-users"></i> Nhân Vật Do Bạn Tạo</div>
+      <div class="char-grid" id="grid-custom"></div>
+    </div>
+
+    <!-- TAB 2: HỒ SƠ NGƯỜI DÙNG -->
+    <div id="profile-view" class="view-container">
+      <div class="profile-card">
+        <div class="profile-avatar-box">
+          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500" class="profile-avatar" id="userAvatar">
+        </div>
+        <div>
+          <h2 id="userName" style="color: var(--accent-neon);">Người Chơi Chika</h2>
+          <p style="color: var(--text-sub); font-size: 13px;">ID: #CK88921 | Thành viên VIP</p>
+          <button class="reward-btn" style="margin-top: 10px; padding: 5px 12px; width: auto;" onclick="editProfile()">Sửa Hồ Sơ</button>
+        </div>
+      </div>
+
+      <div class="profile-stats">
+        <div class="stat-box">
+          <div class="stat-num" id="statGems">120</div>
+          <div class="stat-label">Số Gem</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="statChats">14</div>
+          <div class="stat-label">Lần Chat</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="statStreak">3 Ngày</div>
+          <div class="stat-label">Chuỗi Điểm Danh</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: TẠO CHAR -->
+    <div id="create-view" class="view-container">
+      <h2 style="margin-bottom: 20px; color: var(--accent-neon);">Tạo Nhân Vật AI Riêng</h2>
+      <form onsubmit="createNewChar(event)" style="max-width: 600px;">
+        <div class="form-group">
+          <label>Tên Nhân Vật</label>
+          <input type="text" id="cName" class="form-control" placeholder="VD: Chika - Sát Thủ Xinh Đẹp" required>
+        </div>
+        <div class="form-group">
+          <label>Thể Loại</label>
+          <select id="cCategory" class="form-control">
+            <option value="Anime">Anime / Wifu</option>
+            <option value="Roleplay">Nhập Vai / Drama</option>
+            <option value="Fantasy">Fantasy / Kỳ Ảo</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Link Ảnh Avatar (Để trống sẽ lấy ảnh mẫu)</label>
+          <input type="text" id="cImg" class="form-control" placeholder="https://...">
+        </div>
+        <div class="form-group">
+          <label>Mô Tả Hiển Thị Ngắn</label>
+          <input type="text" id="cDesc" class="form-control" placeholder="Mô tả tính cách hoặc bối cảnh..." required>
+        </div>
+        <div class="form-group">
+          <label>Cấu Hình Tính Cách / System Prompt (Không giới hạn từ ngữ)</label>
+          <textarea id="cPrompt" class="form-control" rows="4" placeholder="Thiết lập chi tiết cách giao tiếp, xưng hô, tính cách..." required></textarea>
+        </div>
+        <button type="submit" class="reward-btn" style="padding: 12px; font-size: 15px;">
+          <i class="fa-solid fa-bolt"></i> Tạo Nhân Vật Ngay
+        </button>
+      </form>
+    </div>
+
+    <!-- TAB 4: HƯỚNG DẪN TẢI APK -->
+    <div id="apk-view" class="view-container">
+      <div class="apk-card">
+        <i class="fa-brands fa-android" style="font-size: 50px; color: var(--accent-neon); margin-bottom: 10px;"></i>
+        <h2>Tải Chika AI Cho Android (.APK)</h2>
+        <p style="color: var(--text-sub); font-size: 13px; margin: 10px 0 20px 0;">
+          Cài đặt ứng dụng trực tiếp lên điện thoại Android của bạn để trải nghiệm chat mượt mà, không giật lag.
+        </p>
+        <button class="reward-btn" style="padding: 12px; font-size: 16px;" onclick="downloadApkSim()">
+          <i class="fa-solid fa-download"></i> Tải File APK (Chika_AI_v2.1.apk)
+        </button>
+        <div style="font-size: 11px; color: var(--text-sub); margin-top: 15px; text-align: left;">
+          <b>Hướng dẫn cài đặt:</b><br>
+          1. Bấm Tải APK về điện thoại.<br>
+          2. Cho phép cài đặt ứng dụng từ Nguồn không xác định trong Cài đặt.<br>
+          3. Mở file APK đã tải và trải nghiệm!
+        </div>
+      </div>
+    </div>
+
+    <!-- CHAT VIEW -->
+    <div id="chat-view" class="chat-view">
+      <div class="chat-header">
+        <button class="nav-btn" onclick="closeChat()" style="padding: 5px 10px;"><i class="fa-solid fa-arrow-left"></i></button>
+        <img id="chatAvatar" src="">
+        <div>
+          <div id="chatName" style="font-weight: bold; font-size: 15px;"></div>
+          <div id="chatDesc" style="font-size: 11px; color: var(--text-sub);"></div>
+        </div>
+      </div>
+
+      <div class="chat-body" id="chatBody"></div>
+
+      <div class="chat-input-area">
+        <input type="text" id="chatInput" class="chat-input" placeholder="Nhắn tin cho Chika AI... (Tự do từ ngữ)" onkeypress="if(event.key==='Enter') sendMessage()">
+        <button class="send-btn" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // DỮ LIỆU BAN ĐẦU
+    let gems = parseInt(localStorage.getItem('chika_gems')) || 120;
+    let chatsCount = parseInt(localStorage.getItem('chika_chats')) || 0;
+    let customChars = JSON.parse(localStorage.getItem('chika_custom_chars')) || [];
+    let currentChar = null;
+
+    let defaultChars = [
+      { id: '1', name: 'Chika - Tiểu Thư Độc Thân', category: 'Anime', img: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500', desc: 'Sẵn sàng tâm sự và chơi roleplay không bộ lọc.' },
+      { id: '2', name: 'Chika - Nữ Hoàng Ma Giới', category: 'Fantasy', img: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500', desc: 'Lạnh lùng, quyến rũ và sở hữu sức mạnh hắc ám.' },
+      { id: '3', name: 'Chika - Nữ Thám Tử', category: 'Roleplay', img: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500', desc: 'Cùng bạn phá giải những vụ án bí ẩn nguy hiểm.' }
+    ];
+
+    window.onload = function() {
+      updateDisplay();
+      renderChars();
+    };
+
+    function updateDisplay() {
+      document.getElementById('gemCount').innerText = gems;
+      document.getElementById('statGems').innerText = gems;
+      document.getElementById('statChats').innerText = chatsCount;
+      localStorage.setItem('chika_gems', gems);
+      localStorage.setItem('chika_chats', chatsCount);
+    }
+
+    /* KÍNH LÚP TÌM KIẾM */
+    function toggleSearchBox() {
+      const box = document.getElementById('searchBox');
+      box.classList.toggle('active');
+      if (box.classList.contains('active')) {
+        document.getElementById('searchInput').focus();
+      }
+    }
+
+    function filterChars(query) {
+      const q = query.toLowerCase();
+      document.querySelectorAll('.char-card').forEach(card => {
+        const name = card.dataset.name.toLowerCase();
+        const category = card.dataset.category.toLowerCase();
+        if (name.includes(q) || category.includes(q)) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    /* ĐIỂM DANH / QUẢNG CÁO */
+    function claimDaily() {
+      gems += 50;
+      updateDisplay();
+      alert('Bạn vừa nhận +50 Gems miễn phí!');
+    }
+
+    function watchAd() {
+      alert('Đang chạy quảng cáo mô phỏng (3s)...');
+      setTimeout(() => {
+        gems += 20;
+        updateDisplay();
+        alert('Xem quảng cáo thành công! +20 Gems.');
+      }, 1500);
+    }
+
+    /* ĐỔI TAB */
+    function switchTab(tab) {
+      document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
+      document.getElementById('chat-view').classList.remove('active');
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+
+      document.getElementById(tab + '-view').classList.add('active');
+    }
+
+    /* RENDER CHARS */
+    function renderChars() {
+      const gAnime = document.getElementById('grid-anime');
+      const gRoleplay = document.getElementById('grid-roleplay');
+      const gFantasy = document.getElementById('grid-fantasy');
+      const gCustom = document.getElementById('grid-custom');
+
+      gAnime.innerHTML = ''; gRoleplay.innerHTML = ''; gFantasy.innerHTML = ''; gCustom.innerHTML = '';
+
+      defaultChars.forEach(c => {
+        const card = createCardHTML(c);
+        if (c.category === 'Anime') gAnime.innerHTML += card;
+        else if (c.category === 'Roleplay') gRoleplay.innerHTML += card;
+        else if (c.category === 'Fantasy') gFantasy.innerHTML += card;
+      });
+
+      customChars.forEach(c => {
+        gCustom.innerHTML += createCardHTML(c);
+      });
+    }
+
+    function createCardHTML(c) {
+      return `
+        <div class="char-card" data-name="${c.name}" data-category="${c.category}" onclick="openChat('${c.id}')">
+          <span class="char-badge">Unfiltered</span>
+          <img src="${c.img}" class="char-img">
+          <div class="char-info">
+            <div class="char-name">${c.name}</div>
+            <div class="char-desc">${c.desc}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    /* TẠO CHAR */
+    function createNewChar(e) {
+      e.preventDefault();
+      const newChar = {
+        id: 'c_' + Date.now(),
+        name: document.getElementById('cName').value,
+        category: document.getElementById('cCategory').value,
+        img: document.getElementById('cImg').value || 'https://images.unsplash.com/photo-1563089145-599997674d42?w=500',
+        desc: document.getElementById('cDesc').value,
+      };
+      customChars.push(newChar);
+      localStorage.setItem('chika_custom_chars', JSON.stringify(customChars));
+      alert('Tạo nhân vật thành công!');
+      renderChars();
+      switchTab('explore');
+    }
+
+    /* CHAT */
+    function openChat(id) {
+      const all = [...defaultChars, ...customChars];
+      currentChar = all.find(c => c.id === id);
+      if (!currentChar) return;
+
+      document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
+      document.getElementById('chat-view').classList.add('active');
+
+      document.getElementById('chatAvatar').src = currentChar.img;
+      document.getElementById('chatName').innerText = currentChar.name;
+      document.getElementById('chatDesc').innerText = currentChar.desc;
+
+      document.getElementById('chatBody').innerHTML = `
+        <div class="msg bot">
+          <b>${currentChar.name}:</b> Chào bạn! Mình đã sẵn sàng trò chuyện nhập vai không giới hạn từ ngữ. Bạn muốn nói về chủ đề gì?
+        </div>
+      `;
+    }
+
+    function closeChat() { switchTab('explore'); }
+
+    function sendMessage() {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      if (gems < 2) {
+        alert('Bạn cần tối thiểu 2 Gem để trò chuyện!');
+        return;
+      }
+
+      gems -= 2;
+      chatsCount += 1;
+      updateDisplay();
+
+      const body = document.getElementById('chatBody');
+      body.innerHTML += `<div class="msg user">${text}</div>`;
+      input.value = '';
+      body.scrollTop = body.scrollHeight;
+
+      // Mô phỏng phản hồi > 2500 từ
+      setTimeout(() => {
+        let longText = `[Phản hồi từ ${currentChar.name} - Chế độ Unfiltered > 2500 từ]\n\n`;
+        longText += `Cảm nhận được câu nói của bạn: "${text}". Không gian xung quanh chuyển biến sâu sắc. Mọi diễn biến suy nghĩ và cảm xúc được khắc họa chân thực tuyệt đối mà không hề vướng phải bất kỳ rào cản hay bộ lọc nào.\n\n`;
+
+        let chunk = `Mọi từ ngữ được sử dụng đều thể hiện cảm xúc mạnh mẽ nhất. ${currentChar.name} quan sát kỹ lưỡng từng cử chỉ của bạn, đưa ra những phản hồi sắc bén và chi tiết từng chút một. `;
+
+        for (let i = 0; i < 20; i++) {
+          longText += `\n[Diễn biến ${i+1}]: ` + chunk.repeat(5) + "\n";
+        }
+
+        body.innerHTML += `<div class="msg bot">${longText}</div>`;
+        body.scrollTop = body.scrollHeight;
+      }, 1000);
+    }
+
+    function editProfile() {
+      const newName = prompt('Nhập tên mới của bạn:', document.getElementById('userName').innerText);
+      if (newName) {
+        document.getElementById('userName').innerText = newName;
+      }
+    }
+
+    function downloadApkSim() {
+      alert('Đang khởi tạo tải file APK Chika AI v2.1 về thiết bị Android...');
+    }
+  </script>
+</body>
+</html>
